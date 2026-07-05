@@ -28,6 +28,10 @@ const adminRoutes = require("./routes/admin.routes");
 
 app.use("/api/admin", adminRoutes);
 
+const roomRoutes = require("./routes/room.routes");
+
+app.use("/api/rooms", roomRoutes);
+
 /* =========================
    TEST ROUTE
 ========================= */
