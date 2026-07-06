@@ -384,7 +384,7 @@ const RoomForm = () => {
             <input
               className="form-control"
               name="amenities"
-              placeholder="WiFi,Fan,AC,Balcony"
+              placeholder="WiFi, Fan, AC, Balcony..."
               value={room.amenities}
               onChange={handleChange}
             />

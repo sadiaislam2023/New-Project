@@ -21,14 +21,10 @@ const roomService = {
   updateBed: (id, bedId, data) =>
     axios.put(`${API}/${id}/beds/${bedId}`, data),
 
-  archiveBed: (id, bedId) =>
+  deleteBed: (id, bedId) =>
     axios.patch(`${API}/${id}/beds/${bedId}/archive`),
 
-  deleteBed: (id, bedId) =>
-    axios.delete(`${API}/${id}/beds/${bedId}`),
-
   // ================= IMAGES =================
-
   uploadImage: (formData) =>
     axios.post(`${API}/upload`, formData, {
       headers: {
@@ -36,7 +32,6 @@ const roomService = {
       },
     }),
 
-  // ❌ IMPORTANT: ONLY KEEP THIS IF BACKEND EXISTS
   deleteImage: (id, public_id) =>
     axios.delete(`${API}/${id}/images/${public_id}`),
 };

@@ -13,18 +13,18 @@ const RoomCard = ({ room }) => {
 
   const deleteRoom = async () => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this room?"
+      "Are you sure you want to archive this room?"
     );
 
     if (!confirmDelete) return;
 
     try {
       await roomService.archiveRoom(room._id);
-      alert("Room deleted successfully.");
+      alert("Room archived successfully.");
       window.location.reload();
     } catch (error) {
       console.log(error);
-      alert("Failed to delete room.");
+      alert("Failed to archive room.");
     }
   };
 
@@ -105,7 +105,7 @@ const RoomCard = ({ room }) => {
                   className="btn btn-danger w-100"
                   onClick={deleteRoom}
                 >
-                  Delete Room
+                  Archive Room
                 </button>
               </>
             )}

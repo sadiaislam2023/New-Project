@@ -10,6 +10,7 @@ const RoomEdit = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [images, setImages] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [newBed, setNewBed] = useState({
     bedNumber: "",
@@ -59,30 +60,25 @@ const RoomEdit = () => {
     }));
   };
 
-  // ===========================
-  // UPLOAD NEW IMAGES
-  // ===========================
-  const uploadImages = async () => {
-    if (!images.length) return [];
-
-    const formData = new FormData();
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
-
-    const res = await roomService.uploadImage(formData);
-    return res.data.urls;
-  };
-
-  // ===========================
-  // DELETE IMAGE
-  // ===========================
-  const deleteImage = async (public_id) => {
+  // ==========================
+  // UPLOAD IMAGES
+  // ==========================
+  const uploadPhotos = async () => {
     try {
-      await roomService.deleteImage(id, public_id);
-      loadRoom();
+      if (images.length === 0) return [];
+
+      const formData = new FormData();
+
+      images.forEach((img) => {
+        formData.append("images", img);
+      });
+
+      const res = await roomService.uploadImage(formData);
+
+      return res.data.urls || [];
     } catch (err) {
       console.log(err);
+      return [];
     }
   };
 
@@ -138,14 +134,23 @@ const RoomEdit = () => {
   };
 
   // ===========================
-  // DELETE BED
+  // DELETE BED (Archive)
   // ===========================
   const deleteBed = async (bedId) => {
     try {
       await roomService.deleteBed(id, bedId);
-      loadRoom();
+
+      // Remove from UI immediately
+      setRoom((prev) => ({
+        ...prev,
+        beds: prev.beds.filter(
+          (bed) => bed._id !== bedId
+        ),
+      }));
+
     } catch (err) {
       console.log(err);
+      alert("Failed to delete bed");
     }
   };
 
@@ -158,7 +163,7 @@ const RoomEdit = () => {
 
       let uploaded = [];
       if (images.length > 0) {
-        uploaded = await uploadImages();
+        uploaded = await uploadPhotos();
       }
 
       const updatedRoom = {
@@ -359,14 +364,48 @@ const RoomEdit = () => {
           {/* =========================
               ROOM IMAGES
           ========================= */}
-          <h4 className="mb-3"> Room Images (Max 10 Files)</h4>
+          <h4 className="mb-3">Room Images</h4>
 
           <input
             type="file"
             multiple
-            className="form-control mb-4"
-            onChange={(e) => setImages([...e.target.files])}
+            className="form-control mb-2"
+            onChange={(e) => {
+              const files = [...e.target.files];
+
+              if (files.length > 10) {
+                setErrorMessage("Maximum 10 images allowed.");
+                return;
+              }
+
+              setErrorMessage("");
+              setImages(files);
+            }}
           />
+
+          {errorMessage && (
+            <div className="text-danger mb-3">{errorMessage}</div>
+          )}
+
+          {/* PREVIEW OF NEWLY SELECTED IMAGES */}
+          {images.length > 0 && (
+            <div className="row mb-4">
+              {images.map((img, index) => (
+                <div className="col-md-3 col-sm-4 mb-3" key={index}>
+                  <img
+                    src={URL.createObjectURL(img)}
+                    alt=""
+                    className="img-fluid rounded border"
+                    style={{
+                      height: "160px",
+                      width: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="row">
             {(room.images || []).map((img, index) => (
@@ -448,36 +487,44 @@ const RoomEdit = () => {
             </thead>
 
             <tbody>
-              {(room.beds || []).map((bed) => (
-                <tr key={bed._id}>
-                  <td>{bed.bedNumber}</td>
-                  <td>{bed.position}</td>
-                  <td>
-                    {bed.occupied ? (
-                      <span
-                        className="badge bg-danger"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => updateBedStatus(bed)}
+              {(room.beds || [])
+                .filter((bed) => !bed.isArchived)
+                .map((bed) => (
+                  <tr key={bed._id}>
+                    <td>{bed.bedNumber}</td>
+
+                    <td>{bed.position}</td>
+
+                    <td>
+                      {bed.occupied ? (
+                        <span
+                          className="badge bg-danger"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => updateBedStatus(bed)}
+                        >
+                          Occupied
+                        </span>
+                      ) : (
+                        <span
+                          className="badge bg-success"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => updateBedStatus(bed)}
+                        >
+                          Available
+                        </span>
+                      )}
+                    </td>
+
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => deleteBed(bed._id)}
                       >
-                        Occupied
-                      </span>
-                    ) : (
-                      <span
-                        className="badge bg-success"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => updateBedStatus(bed)}
-                      >
-                        Available
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <button className="btn btn-danger btn-sm" onClick={() => deleteBed(bed._id)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
 
@@ -500,3 +547,4 @@ const RoomEdit = () => {
 };
 
 export default RoomEdit;
+

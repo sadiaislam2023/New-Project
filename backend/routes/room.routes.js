@@ -13,7 +13,7 @@ const {
   deleteRoomImage,
   addBed,
   updateBed,
-  deleteBed,
+  archiveBed,
 } = require("../controllers/room.controller");
 
 const storage = multer.diskStorage({
@@ -24,19 +24,36 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+/* ================= ROOM ================= */
+
 router.post("/", createRoom);
 router.get("/", getRooms);
 router.get("/:id", getRoomById);
 router.put("/:id", updateRoom);
 router.patch("/:id/archive", archiveRoom);
 
-/* images */
-router.post("/upload", upload.array("images", 10), uploadRoomImage);
-router.delete("/:id/images/:public_id", deleteRoomImage);
+/* ================= IMAGES ================= */
 
-/* beds */
+router.post(
+  "/upload",
+  upload.array("images", 10),
+  uploadRoomImage
+);
+
+router.delete(
+  "/:id/images/:public_id",
+  deleteRoomImage
+);
+
+/* ================= BEDS ================= */
+
 router.post("/:id/beds", addBed);
+
 router.put("/:id/beds/:bedId", updateBed);
-router.delete("/:id/beds/:bedId", deleteBed);
+
+router.patch(
+  "/:id/beds/:bedId/archive",
+  archiveBed
+);
 
 module.exports = router;
